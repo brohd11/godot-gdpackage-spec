@@ -1,5 +1,5 @@
-export_root: "res://addons/_lib/gdpackage_spec/_export_ignore/exports"
-plugin_folder: "GdpackageSpec{{version=res://addons/_lib/gdpackage_spec}}"
+export_root: "res://addons/_lib/gdpackage/spec/_export_ignore/exports"
+plugin_folder: "GdpackageSpec{{version=res://addons/_lib/gdpackage/spec}}"
 pre_script: ""
 post_script: ""
 options:
@@ -31,12 +31,12 @@ options:
     parse_tres: {}
 exports:
   -
-    source: "res://addons/_lib/gdpackage_spec"
-    export_name: "gdpackage-spec{{version=res://addons/_lib/gdpackage_spec}}"
-    export_folder: addons/_lib/gdpackage_spec
+    source: "res://addons/_lib/gdpackage/spec"
+    export_name: "gdpackage-spec{{version=res://addons/_lib/gdpackage/spec}}"
+    export_folder: addons/_lib/gdpackage/spec
     exclude:
       directories:
-        - "res://addons/_lib/gdpackage_spec/_export_ignore"
+        - "res://addons/_lib/gdpackage/spec/_export_ignore"
       file_extensions: []
       files: []
     other_transfers: []
@@ -45,4 +45,4 @@ exports:
       parse_gd: {}
       parse_tscn: {}
       parse_tres: {}
-    remote_dir: "res://addons/_lib/gdpackage_spec/src/remote"
+    remote_dir: "res://addons/_lib/gdpackage/spec/src/remote"

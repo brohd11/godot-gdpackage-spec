@@ -4,7 +4,7 @@ extends EditorScript
 ## Tests for the export-ignore folder helper: both spellings, `_export_ignore` winning when a plugin
 ## has both, and the always-excluded path check.
 ##
-##     load("res://addons/_lib/gdpackage_spec/_export_ignore/test/export_ignore_test.gd").run_tests()
+##     load("res://addons/_lib/gdpackage/spec/_export_ignore/test/export_ignore_test.gd").run_tests()
 
 const ExportIgnore = preload("uid://c4pt5djyuf8c") #! resolve GDPackageSpec.ExportIgnore
 
