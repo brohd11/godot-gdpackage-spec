@@ -123,6 +123,67 @@ static func set_require(text:String, specs:Array, multiline:bool = false) -> Str
 	return "\n".join(out)
 
 
+## `text` with `key="value"` set: replaced in place wherever a package section holds it, else
+## inserted right after version= (end of that section without one). Single-line values only.
+static func set_value(text:String, key:String, value:String) -> String:
+	var line_text = '%s="%s"' % [key, value]
+	var lines = text.split("\n")
+	var replaced = false
+	for i in _key_lines(lines, key):
+		lines[i] = line_text
+		replaced = true
+	if replaced:
+		return "\n".join(lines)
+
+	var target = key_section(text, "version")
+	var header = -1
+	var anchor = -1 # version= line, else last non-blank line of the target section
+	var current = ""
+	for i in lines.size():
+		var stripped = lines[i].strip_edges()
+		if stripped.begins_with("["):
+			if header >= 0 and current == target:
+				break
+			current = stripped.trim_prefix("[").trim_suffix("]").strip_edges()
+			if current == target:
+				header = i
+				anchor = i
+			continue
+		if current != target or stripped == "":
+			continue
+		if stripped.get_slice("=", 0).strip_edges() == "version":
+			anchor = i
+			break
+		anchor = i
+	if header < 0:
+		lines.append_array(["", "[%s]" % target, line_text])
+	else:
+		lines.insert(anchor + 1, line_text)
+	return "\n".join(lines)
+
+
+## `text` without any package-section `key=` line. Single-line values only.
+static func remove_value(text:String, key:String) -> String:
+	var lines = Array(text.split("\n"))
+	var drop = _key_lines(PackedStringArray(lines), key)
+	drop.reverse()
+	for i in drop:
+		lines.remove_at(i)
+	return "\n".join(lines)
+
+
+static func _key_lines(lines:PackedStringArray, key:String) -> Array:
+	var out = []
+	var current = ""
+	for i in lines.size():
+		var stripped = lines[i].strip_edges()
+		if stripped.begins_with("["):
+			current = stripped.trim_prefix("[").trim_suffix("]").strip_edges()
+		elif current in SECTIONS and "=" in stripped and stripped.get_slice("=", 0).strip_edges() == key:
+			out.append(i)
+	return out
+
+
 static func _sections(text:String) -> Dictionary:
 	var out = {}
 	var current = ""

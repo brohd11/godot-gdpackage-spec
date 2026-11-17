@@ -1,7 +1,7 @@
 @tool
 extends EditorScript
 ## PackageCfg: which file in a dir is the package cfg, [package] > [addon] > [plugin] per key, and
-## the released cfg's require rewrite.
+## the released cfg's require rewrite, and single-key set/remove.
 
 const PackageCfg = preload("uid://ddo8w07hts45v") #! resolve GDPackageSpec.Cfg
 const ROOT = "user://gdpackage_spec_package_cfg_tests"
@@ -17,6 +17,7 @@ static func run_tests() -> Dictionary:
 	_test_config_file()
 	_test_find()
 	_test_set_require()
+	_test_set_value()
 	var output:Array[String] = ["package_cfg: %d passed, %d failed" % [_passed, _failures.size()]]
 	for failure in _failures:
 		output.append("  FAIL  " + failure)
@@ -105,6 +106,26 @@ static func _test_set_require() -> void:
 		'[plugin]\nversion="1"\nrequire=[\n"a/b@v1",\n]\n')
 	_check("multiline empty stays one line", PackageCfg.set_require(multi, [], true),
 		'[plugin]\nname="p"\nversion="1.0.0"\n\nrequire=[]\n\n[namespace]\npath=""\n')
+
+
+static func _test_set_value() -> void:
+	var k = "minimum_engine_version"
+	_check("set_value: inserted right after version=", PackageCfg.set_value('[package]\nversion="1"\nurl="u"\nrequire=[\n"a/b@v1",\n]\n', k, "4.4"),
+		'[package]\nversion="1"\nminimum_engine_version="4.4"\nurl="u"\nrequire=[\n"a/b@v1",\n]\n')
+	_check("set_value: replaced in place", PackageCfg.set_value('[package]\nversion="1"\nurl="u"\nminimum_engine_version="4.2"\n', k, "4.4"),
+		'[package]\nversion="1"\nurl="u"\nminimum_engine_version="4.4"\n')
+	_check("set_value: [namespace] key ignored, added to version's section",
+		PackageCfg.set_value('[namespace]\nminimum_engine_version="x"\n[plugin]\nname="p"\nversion="1"\n', k, "4.4"),
+		'[namespace]\nminimum_engine_version="x"\n[plugin]\nname="p"\nversion="1"\nminimum_engine_version="4.4"\n')
+	_check("set_value: no version=, end of default section", PackageCfg.set_value('[plugin]\nname="p"\n\n[namespace]\npath=""\n', k, "4.4"),
+		'[plugin]\nname="p"\nminimum_engine_version="4.4"\n\n[namespace]\npath=""\n')
+	_check("set_value: no section, appended", PackageCfg.set_value('[namespace]\npath=""', k, "4.4"),
+		'[namespace]\npath=""\n\n[plugin]\nminimum_engine_version="4.4"')
+	_check("set_value: [addon] version wins over [plugin]", PackageCfg.set_value('[plugin]\nname="p"\n[addon]\nversion="1"\n', k, "4.4"),
+		'[plugin]\nname="p"\n[addon]\nversion="1"\nminimum_engine_version="4.4"\n')
+	_check("remove_value: package sections only", PackageCfg.remove_value('[plugin]\nminimum_version="4.3"\nversion="1"\n[namespace]\nminimum_version="k"\n', "minimum_version"),
+		'[plugin]\nversion="1"\n[namespace]\nminimum_version="k"\n')
+	_check("remove_value: absent, unchanged", PackageCfg.remove_value('[plugin]\nversion="1"\n', "minimum_version"), '[plugin]\nversion="1"\n')
 
 
 static func _write(relative:String, text:String) -> void:
